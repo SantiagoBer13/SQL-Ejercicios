@@ -1,3 +1,5 @@
+-- MySQL Script
+
 #Diagrama E/R: https://sql-playground.com/diagrams/tienda.png
 
 #Query para crear bd, crear tablas, insertar registros.
