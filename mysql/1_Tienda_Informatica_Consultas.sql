@@ -246,3 +246,84 @@ ORDER BY p.precio DESC, p.nombre ASC;
 # 13) Devuelve un listado con el identificador y el nombre de fabricante, solamente de aquellos fabricantes que tienen productos asociados en la base de datos.
 SELECT DISTINCT(f.id), f.nombre FROM fabricante f
 INNER JOIN producto p ON f.id = p.id_fabricante;
+
+
+# Composición Externa
+
+# 1) Devuelve un listado de todos los fabricantes que existen en la base de datos, junto con los productos que tiene cada uno de ellos. El listado deberá mostrar también aquellos fabricantes que no tienen productos asociados.
+SELECT * FROM fabricante f 
+LEFT JOIN producto p ON p.id_fabricante = f.id;
+
+# 2) Devuelve un listado donde sólo aparezcan aquellos fabricantes que no tienen ningún producto asociado.
+SELECT * FROM fabricante f 
+LEFT JOIN producto p ON p.id_fabricante = f.id
+WHERE p.id_fabricante IS NULL;
+
+
+# SubConsultas
+
+# 1) Devuelve todos los productos del fabricante Lenovo. (Sin utilizar INNER JOIN).
+SELECT * FROM producto p
+WHERE p.id_fabricante IN (SELECT id FROM fabricante WHERE nombre = 'Lenovo');
+
+# 2) Devuelve todos los datos de los productos que tienen el mismo precio que el producto más caro del fabricante Lenovo. (Sin utilizar INNER JOIN).
+SELECT * FROM producto
+WHERE precio = (SELECT precio FROM producto p
+WHERE p.id_fabricante IN (SELECT id FROM fabricante WHERE nombre = 'Lenovo')
+ORDER BY precio DESC
+LIMIT 1);
+
+# 3) Lista el nombre del producto más caro del fabricante Lenovo.
+SELECT nombre FROM producto p
+WHERE p.id_fabricante IN (SELECT id FROM fabricante WHERE nombre = 'Lenovo')
+ORDER BY precio DESC
+LIMIT 1;
+
+# 4) Lista el nombre del producto más barato del fabricante Hewlett-Packard.
+SELECT nombre FROM producto p
+WHERE p.id_fabricante IN (SELECT id FROM fabricante WHERE nombre = 'Hewlett-Packard')
+ORDER BY precio ASC
+LIMIT 1;
+
+# 5) Devuelve todos los productos de la base de datos que tienen un precio mayor o igual al producto más caro del fabricante Lenovo.
+SELECT * FROM producto
+WHERE precio >= (SELECT precio FROM producto p
+WHERE p.id_fabricante IN (SELECT id FROM fabricante WHERE nombre = 'Lenovo')
+ORDER BY precio DESC
+LIMIT 1);
+
+# 6) Lista todos los productos del fabricante Asus que tienen un precio superior al precio medio de todos sus productos.
+SELECT * FROM producto
+WHERE precio > (SELECT AVG(precio) FROM producto WHERE id_fabricante IN (SELECT id FROM fabricante WHERE nombre = 'Asus')) AND id_fabricante IN (SELECT id FROM fabricante WHERE nombre = 'Asus');
+
+# 7) Devuelve el producto más caro que existe en la tabla producto sin hacer uso de MAX, ORDER BY ni LIMIT.
+SELECT * FROM producto
+WHERE precio >= ALL (SELECT precio FROM producto);
+
+# 8) Devuelve el producto más barato que existe en la tabla producto sin hacer uso de MIN, ORDER BY ni LIMIT.
+SELECT * FROM producto
+WHERE precio <= ALL (SELECT precio FROM producto);
+
+# 9) Devuelve los nombres de los fabricantes que tienen productos asociados. (Utilizando ALL o ANY).
+SELECT nombre FROM fabricante
+WHERE id = ANY (SELECT id_fabricante FROM producto);
+
+# 10) Devuelve los nombres de los fabricantes que no tienen productos asociados. (Utilizando ALL o ANY).
+SELECT nombre FROM fabricante
+WHERE id != ALL (SELECT id_fabricante FROM producto);
+
+# 11) Devuelve los nombres de los fabricantes que tienen productos asociados. (Utilizando IN o NOT IN).
+SELECT nombre FROM fabricante
+WHERE id IN (SELECT id_fabricante FROM producto);
+
+# 12) Devuelve los nombres de los fabricantes que no tienen productos asociados. (Utilizando IN o NOT IN).
+SELECT nombre FROM fabricante
+WHERE id NOT IN (SELECT id_fabricante FROM producto);
+
+# 13) Devuelve los nombres de los fabricantes que tienen productos asociados. (Utilizando EXISTS o NOT EXISTS).
+SELECT nombre FROM fabricante fab
+WHERE EXISTS (SELECT id_fabricante FROM producto pro WHERE pro.id_fabricante = fab.id);
+
+# 14) Devuelve los nombres de los fabricantes que no tienen productos asociados. (Utilizando EXISTS o NOT EXISTS).
+SELECT nombre FROM fabricante fab
+WHERE NOT EXISTS (SELECT id_fabricante FROM producto pro WHERE pro.id_fabricante = fab.id);
